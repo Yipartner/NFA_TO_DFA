@@ -8,8 +8,6 @@ class NFA
     public $func;
     public $sstatus;
     public $fstatus;
-    public $ziji;
-    public $nameNum;
 
     public function closure($y)
     {
@@ -33,7 +31,7 @@ class NFA
         return array_unique($brr);
     }
 
-    public function get_ziji(){
+    public function get_ziji(& $a){
         $ziji = [
             'y'=>[],
             'n'=>[]
@@ -49,14 +47,24 @@ class NFA
 
                     $U = $this->closure($this->move($zi,$bian));
                     sort($U);
+                    if (isset($a[implode(',',$zi)])){
+                        $a[implode(',',$zi)][$bian]=implode(',',$U);
+                    }
+                    else {
+                        $a=array_merge($a,[
+                            implode(',',$zi)=>[
+                                $bian=>implode(',',$U)
+                            ]
+                        ]);
+                    }
                     if (!in_array($U,$ziji['y'])){
                         array_push($ziji['n'],$U);
+
                     }
                 }
             }
         }
         return $ziji['y'];
-
     }
 }
 //$bbb= new NFA();
@@ -132,4 +140,7 @@ $nfa->fstatus=['10'];
 
 //print_r($nfa->closure($nfa->move($nfa->closure(['0']),'a')));
 
-print_r($nfa->get_ziji());
+$func = [];
+$nfa_ziji=$nfa->get_ziji($func);
+print_r($nfa_ziji);
+//print_r($func);
