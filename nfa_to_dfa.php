@@ -31,7 +31,7 @@ class NFA
         return array_unique($brr);
     }
 
-    public function get_ziji(& $a){
+    public function get_ziji(& $a,&$index){
         $ziji = [
             'y'=>[],
             'n'=>[]
@@ -47,13 +47,19 @@ class NFA
 
                     $U = $this->closure($this->move($zi,$bian));
                     sort($U);
-                    if (isset($a[implode(',',$zi)])){
-                        $a[implode(',',$zi)][$bian]=implode(',',$U);
+                    if (!in_array($zi,$index)){
+                        array_push($index,$zi);
+                    }
+                    if (!in_array($U,$index)){
+                        array_push($index,$U);
+                    }
+                    if (isset($a[array_search($zi,$index)])){
+                        $a[array_search($zi,$index)][$bian]=array_search($U,$index);
                     }
                     else {
                         $a=array_merge($a,[
-                            implode(',',$zi)=>[
-                                $bian=>implode(',',$U)
+                            array_search($zi,$index)=>[
+                                $bian=>array_search($U,$index)
                             ]
                         ]);
                     }
@@ -133,14 +139,47 @@ $nfa->func = [
         '*' => []
     ]
 ];
+//设置NFA初态集
 $nfa->sstatus=['0'];
+//设置NFA终态集
 $nfa->fstatus=['10'];
 
-//print_r($nfa->closure(['3', '8']));
-
-//print_r($nfa->closure($nfa->move($nfa->closure(['0']),'a')));
-
+// DFA映射数组
 $func = [];
-$nfa_ziji=$nfa->get_ziji($func);
-print_r($nfa_ziji);
-//print_r($func);
+// NFA子集数组
+$index = [];
+//获取子集
+$nfa_ziji=$nfa->get_ziji($func,$index);
+foreach ($func as $k => $v){
+    $func['T'.$k]=$v;
+    unset($func[$k]);
+}
+foreach ($index as $k => $v){
+    $index['T'.$k]=$v;
+    unset($index[$k]);
+}
+echo "NFA子集:",PHP_EOL;
+//print_r($nfa_ziji);
+echo "DFA_K集合：";
+echo json_encode($index),PHP_EOL;
+echo "DFA_∑ 集合：";
+echo json_encode($nfa->bian),PHP_EOL;
+echo "DFA_f集合：";
+echo json_encode($func),PHP_EOL;
+
+$dfa_sstatus = [];
+$dfa_fstatus = [];
+//为集合命名
+foreach ($index as $k=>$v){
+    if (array_intersect($v,$nfa->sstatus) != []){
+        array_push($dfa_sstatus,$k);
+    }
+    if (array_intersect($v,$nfa->fstatus) != []){
+        array_push($dfa_fstatus,$k);
+    }
+}
+echo "DFA 初态集：";
+echo json_encode($dfa_sstatus),PHP_EOL;
+echo "DFA 终态集：";
+echo  json_encode($dfa_fstatus),PHP_EOL;
+/*********************************************************NFA_TO_DFA 完成******************************************************************************/
