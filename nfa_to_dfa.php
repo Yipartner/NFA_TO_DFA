@@ -153,12 +153,15 @@ $nfa_ziji=$nfa->get_ziji($func,$index);
 foreach ($func as $k => $v){
     $func['T'.$k]=$v;
     unset($func[$k]);
+    foreach ($v as $a => $b){
+        $func['T'.$k][$a]= 'T'.$b;
+    }
 }
 foreach ($index as $k => $v){
     $index['T'.$k]=$v;
     unset($index[$k]);
 }
-echo "NFA子集:",PHP_EOL;
+//echo "NFA子集:",PHP_EOL;
 //print_r($nfa_ziji);
 echo "DFA_K集合：";
 echo json_encode($index),PHP_EOL;
@@ -183,3 +186,68 @@ echo json_encode($dfa_sstatus),PHP_EOL;
 echo "DFA 终态集：";
 echo  json_encode($dfa_fstatus),PHP_EOL;
 /*********************************************************NFA_TO_DFA 完成******************************************************************************/
+/*
+ * K :$index
+ * ∑ :$nfa->bian
+ * f :$func
+ * 初态集：$dfa_sstatus
+ * 终态集：$dfa_fstatus
+ * */
+
+//1. 分割为非终态集与终态集
+$K = [];
+foreach ($index as $k => $v){
+    array_push($K,$k);
+}
+$I0 = array_diff($K,$dfa_fstatus);
+$I1 = $dfa_fstatus;
+$P = [$I1,$I0];
+$W = [$I1];
+while ($W != []){
+    $kkk=array_rand($W,1);
+    $A=$W[$kkk];
+    unset($W[$kkk]);
+    foreach ($nfa->bian as $item){
+        $X = getX($func,$item,$A);
+
+        foreach ($P as $k=>$Y){
+            $XJY=array_intersect($X,$Y);
+            $XCY=array_diff($Y,$X);
+            if ($XJY && $XCY){
+                unset($P[$k]);
+                array_push($P,$XJY);
+                array_push($P,$XCY);
+                if (in_array($Y,$W)){
+                    unset($W[array_search($Y,$W)]);
+                    var_dump(in_array($Y,$W));
+                    array_push($W,$X);
+                    array_push($W,$Y);
+                }else{
+                    if (count($XJY)<=count($XCY)){
+                        array_push($W,$XJY);
+                    }
+                    else{
+                        array_push($W,$XCY);
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+function getX($f,$b,$a){
+    $arr = [];
+//    if (!$a){
+//        $a=[];
+//    }
+    foreach ($f as $k=>$v){
+
+        if (in_array($v[$b],$a)){
+            array_push($arr,$k);
+        }
+    }
+    return $arr;
+}
+echo "**********",PHP_EOL;
+echo json_encode($P),PHP_EOL;
