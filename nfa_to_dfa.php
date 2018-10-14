@@ -304,26 +304,35 @@ foreach ($P as $item) {
         array_push($minDFA_K, $item[0]);
     }
 }
-foreach ($func as $k => $v) {
+
+
+//临时变量，为了不修改原$func
+$bfunc = $func;
+
+//用于记录DFA每个状态所属划分块的第一个状态
+$bindex=[];
+foreach ($P as $k=>$v){
+    foreach ($v as $kk=>$s){
+        $bindex=array_merge($bindex,[$s=>$v[0]]);
+    }
+}
+//替换节点合并
+foreach ($bfunc as $k=>$v){
+    foreach ($v as $b=>$s){
+        $bfunc[$k][$b]=$bindex[$s];
+    }
+}
+foreach ($bfunc as $k => $v) {
     if (!in_array($k, $minDFA_K)) continue;
     $minDFA_F = array_merge($minDFA_F, [$k => []]);
     foreach ($v as $b => $s) {
         if (in_array($s, $minDFA_K)) {
             $minDFA_F[$k] = array_merge($minDFA_F[$k], [$b => $s]);
         }
-//        else{
-//            $minDFA_F[$k]=array_merge($minDFA_F[$k],[$b=>'']);
-//        }
     }
 }
 
-foreach ($P as $k=>$v){
-    $a = [];
-    $b = [];
-    foreach ($v as $b){
 
-    }
-}
 
 echo "最小DFA_K集：";
 echo json_encode($minDFA_K), PHP_EOL;
