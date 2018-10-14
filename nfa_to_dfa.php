@@ -161,8 +161,9 @@ foreach ($index as $k => $v){
     $index['T'.$k]=$v;
     unset($index[$k]);
 }
-//echo "NFA子集:",PHP_EOL;
-//print_r($nfa_ziji);
+echo "NFA子集:",PHP_EOL;
+echo json_encode($nfa_ziji),PHP_EOL;
+echo "**********NFA_TO_DFA************",PHP_EOL;
 echo "DFA_K集合：";
 echo json_encode($index),PHP_EOL;
 echo "DFA_∑ 集合：";
@@ -238,9 +239,6 @@ while ($W != []){
 
 function getX($f,$b,$a){
     $arr = [];
-//    if (!$a){
-//        $a=[];
-//    }
     foreach ($f as $k=>$v){
 
         if (in_array($v[$b],$a)){
@@ -249,5 +247,44 @@ function getX($f,$b,$a){
     }
     return $arr;
 }
-echo "**********",PHP_EOL;
+echo "**********DFA——最小化************",PHP_EOL;
+echo "划分块：";
 echo json_encode($P),PHP_EOL;
+$minDFA_K=[];
+$minDFA_SS=[];//初态集
+$minDFA_FS=[];//终态集
+$minDFA_F=[];//f集
+//foreach ($P as $k=>$v){
+//    array_push($minDFA_K,$v[0]);
+//}
+foreach ($P as $item){
+    if (array_intersect($dfa_fstatus,$item)!=[] ){
+        array_push($minDFA_K,$item[0]);
+        array_push($minDFA_FS,$item[0]);
+    } elseif (array_intersect($dfa_sstatus,$item)!=[]){
+        array_push($minDFA_K,$item[0]);
+        array_push($minDFA_SS,$item[0]);
+    }else{
+      array_push($minDFA_K,$item[0]);
+    }
+}
+foreach ($func as $k=>$v){
+    if (!in_array($k,$minDFA_K))continue;
+    $minDFA_F = array_merge($minDFA_F,[$k=>[]]);
+    foreach ($v as $b=>$s){
+        if (in_array($s,$minDFA_K)){
+            $minDFA_F[$k]=array_merge($minDFA_F[$k],[$b=>$s]);
+        }
+//        else{
+//            $minDFA_F[$k]=array_merge($minDFA_F[$k],[$b=>'']);
+//        }
+    }
+}
+
+
+echo "最小DFA_K集：";
+echo json_encode($minDFA_K),PHP_EOL;
+echo "最小DFA_∑ 集合：".json_encode($nfa->bian),PHP_EOL;
+echo "最小DFA_f集：".json_encode($minDFA_F),PHP_EOL;
+echo "最小DFA初态集：".json_encode($minDFA_SS),PHP_EOL;
+echo "最小DFA终态集：".json_encode($minDFA_FS),PHP_EOL;
